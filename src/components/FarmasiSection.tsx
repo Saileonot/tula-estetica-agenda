@@ -66,12 +66,22 @@ export function FarmasiSection() {
         <div className="relative">
           <div className="absolute -inset-6 -z-10 rounded-[2.5rem] bg-gradient-to-br from-primary/20 via-secondary to-transparent blur-2xl" />
           <div className="grid grid-cols-2 gap-4">
-            <div className="aspect-square rounded-3xl bg-gradient-to-br from-primary/30 to-accent/30 p-6 shadow-lg backdrop-blur">
+            <a
+              href="https://www.farmasi.es/tulacira/product-detail/dr-c-tuna-resurface-suero-revitalizador?pid=1000279"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group aspect-square rounded-3xl bg-gradient-to-br from-primary/30 to-accent/30 p-6 shadow-lg backdrop-blur transition hover:shadow-xl hover:-translate-y-1"
+            >
               <div className="flex h-full flex-col justify-between">
                 <span className="text-xs uppercase tracking-[0.25em] text-foreground/70">Skincare</span>
-                <p className="font-display text-2xl leading-tight">Cuidado facial</p>
+                <div>
+                  <p className="font-display text-2xl leading-tight">Dr. C. Tuna Resurface Suero Revitalizador</p>
+                  <span className="mt-2 inline-flex items-center gap-1 text-xs text-primary opacity-0 transition group-hover:opacity-100">
+                    Comprar <ExternalLink className="h-3 w-3" />
+                  </span>
+                </div>
               </div>
-            </div>
+            </a>
             <div className="mt-8 aspect-square rounded-3xl bg-gradient-to-br from-accent/40 to-secondary p-6 shadow-lg backdrop-blur">
               <div className="flex h-full flex-col justify-between">
                 <span className="text-xs uppercase tracking-[0.25em] text-foreground/70">Make up</span>
