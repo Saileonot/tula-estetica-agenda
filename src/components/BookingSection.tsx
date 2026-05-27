@@ -119,29 +119,32 @@ export function BookingSection({ initialTreatmentId }: Props) {
   const slots = useMemo(() => {
     if (dayClosed || !treatment) return [];
     const h = hoursByDay[selectedDay.getDay()];
-    const openStr = h?.open ?? DEFAULT_OPEN;
-    const closeStr = h?.close ?? DEFAULT_CLOSE;
-    const [oh, om] = openStr.split(":").map(Number);
-    const [ch, cm] = closeStr.split(":").map(Number);
+    const ranges = [h?.morning, h?.afternoon].filter(Boolean) as Range[];
+    if (ranges.length === 0) return [];
     const result: { time: Date; available: boolean }[] = [];
     const dayStart = startOfDay(selectedDay);
-    const open = addMinutes(dayStart, oh * 60 + om);
-    const close = addMinutes(dayStart, ch * 60 + cm);
-    let t = open;
     const now = new Date();
-    while (addMinutes(t, treatment.duration) <= close) {
-      const slotEnd = addMinutes(t, treatment.duration);
-      const conflict = busy.some((b) => {
-        const bStart = new Date(b.slot_at);
-        const bEnd = addMinutes(bStart, b.duration_minutes);
-        return t < bEnd && slotEnd > bStart;
-      });
-      const inPast = t <= now;
-      result.push({ time: new Date(t), available: !conflict && !inPast });
-      t = addMinutes(t, SLOT_MINUTES);
+    for (const r of ranges) {
+      const [oh, om] = r.open.split(":").map(Number);
+      const [ch, cm] = r.close.split(":").map(Number);
+      const open = addMinutes(dayStart, oh * 60 + om);
+      const close = addMinutes(dayStart, ch * 60 + cm);
+      let t = open;
+      while (addMinutes(t, treatment.duration) <= close) {
+        const slotEnd = addMinutes(t, treatment.duration);
+        const conflict = busy.some((b) => {
+          const bStart = new Date(b.slot_at);
+          const bEnd = addMinutes(bStart, b.duration_minutes);
+          return t < bEnd && slotEnd > bStart;
+        });
+        const inPast = t <= now;
+        result.push({ time: new Date(t), available: !conflict && !inPast });
+        t = addMinutes(t, SLOT_MINUTES);
+      }
     }
     return result;
   }, [selectedDay, busy, treatment, hoursByDay, dayClosed]);
+
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
