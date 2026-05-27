@@ -81,8 +81,7 @@ function AdminPage() {
         `Hola ${a.client_name}, soy ${OWNER.name} 💕. ` +
         `Te confirmo tu cita de *${a.treatment}* el ${fechaTexto}. ` +
         `¡Te espero!`;
-      const wa = `https://wa.me/${cleanPhone(a.client_phone)}?text=${encodeURIComponent(msg)}`;
-      window.open(wa, "_blank", "noopener,noreferrer");
+      openWhatsapp(a.client_phone, msg);
     }
     load();
   }
