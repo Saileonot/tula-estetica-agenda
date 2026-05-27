@@ -17,8 +17,10 @@ import { Clock, Loader2, CheckCircle2 } from "lucide-react";
 
 const SLOT_MINUTES = 30;
 const DAYS_AHEAD = 14;
-const DEFAULT_OPEN = "10:00:00";
-const DEFAULT_CLOSE = "19:00:00";
+
+type Range = { open: string; close: string };
+type DayHours = { morning: Range | null; afternoon: Range | null; closed: boolean };
+
 
 const phoneRegex = /^[+0-9\s]{6,20}$/;
 
