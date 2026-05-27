@@ -6,10 +6,11 @@ import { es } from "date-fns/locale/es";
 import { toast } from "sonner";
 import {
   Loader2, Check, X, LogOut, Phone, ChevronLeft, ChevronRight,
-  Calendar as CalendarIcon, Inbox, MessageCircle, History,
+  Calendar as CalendarIcon, Inbox, MessageCircle, History, CalendarClock,
 } from "lucide-react";
 import { OWNER } from "@/lib/owner";
 import { buildWhatsappUrl, openWhatsapp } from "@/lib/whatsapp";
+import { AvailabilityView } from "@/components/admin/AvailabilityView";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -29,7 +30,7 @@ type Appointment = {
   created_at: string;
 };
 
-type Tab = "day" | "requests";
+type Tab = "day" | "requests" | "availability";
 
 function AdminPage() {
   const navigate = useNavigate();
@@ -150,9 +151,12 @@ function AdminPage() {
           <TabBtn active={tab === "requests"} onClick={() => setTab("requests")} icon={<Inbox className="h-4 w-4" />}>
             Solicitudes ({pendingRequests.length})
           </TabBtn>
+          <TabBtn active={tab === "availability"} onClick={() => setTab("availability")} icon={<CalendarClock className="h-4 w-4" />}>
+            Disponibilidad
+          </TabBtn>
         </div>
 
-        {tab === "day" ? (
+        {tab === "day" && (
           <DayView
             selectedDay={selectedDay}
             onChangeDay={setSelectedDay}
@@ -161,7 +165,8 @@ function AdminPage() {
             onCancel={(a) => updateStatus(a, "cancelled")}
             onOpenHistory={(a) => setHistoryFor({ phone: a.client_phone, name: a.client_name })}
           />
-        ) : (
+        )}
+        {tab === "requests" && (
           <RequestsView
             items={pendingRequests}
             onConfirm={(a) => updateStatus(a, "confirmed")}
@@ -169,6 +174,7 @@ function AdminPage() {
             onOpenHistory={(a) => setHistoryFor({ phone: a.client_phone, name: a.client_name })}
           />
         )}
+        {tab === "availability" && <AvailabilityView />}
       </main>
 
       {historyFor && (

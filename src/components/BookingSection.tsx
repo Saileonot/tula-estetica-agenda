@@ -15,10 +15,10 @@ import {
 } from "@/components/ui/dialog";
 import { Clock, Loader2, CheckCircle2 } from "lucide-react";
 
-const OPEN_HOUR = 10;
-const CLOSE_HOUR = 19;
 const SLOT_MINUTES = 30;
 const DAYS_AHEAD = 14;
+const DEFAULT_OPEN = "10:00:00";
+const DEFAULT_CLOSE = "19:00:00";
 
 const phoneRegex = /^[+0-9\s]{6,20}$/;
 
@@ -43,10 +43,25 @@ export function BookingSection({ initialTreatmentId }: Props) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  // Horario semanal de Tula (clave = day_of_week 0..6)
+  const [hoursByDay, setHoursByDay] = useState<Record<number, { open: string; close: string; closed: boolean }>>({});
 
   useEffect(() => { setTreatmentId(initialTreatmentId ?? treatmentId); /* eslint-disable-next-line */ }, [initialTreatmentId]);
 
   const treatment = getTreatment(treatmentId)!;
+
+  // Cargar horario semanal una vez
+  useEffect(() => {
+    (async () => {
+      const sb = await getSupabaseClient();
+      const { data } = await sb.from("working_hours").select("day_of_week, open_time, close_time, is_closed");
+      const map: Record<number, { open: string; close: string; closed: boolean }> = {};
+      (data ?? []).forEach((h: { day_of_week: number; open_time: string; close_time: string; is_closed: boolean }) => {
+        map[h.day_of_week] = { open: h.open_time, close: h.close_time, closed: h.is_closed };
+      });
+      setHoursByDay(map);
+    })();
+  }, []);
 
   const days = useMemo(() => {
     const today = startOfDay(new Date());
@@ -77,17 +92,27 @@ export function BookingSection({ initialTreatmentId }: Props) {
     return () => { cancelled = true; };
   }, [selectedDay]);
 
-  // Generate slot grid for that day
+  // Generate slot grid for that day, según horario semanal
+  const dayClosed = useMemo(() => {
+    const h = hoursByDay[selectedDay.getDay()];
+    return h?.closed ?? false;
+  }, [hoursByDay, selectedDay]);
+
   const slots = useMemo(() => {
+    if (dayClosed) return [];
+    const h = hoursByDay[selectedDay.getDay()];
+    const openStr = h?.open ?? DEFAULT_OPEN;
+    const closeStr = h?.close ?? DEFAULT_CLOSE;
+    const [oh, om] = openStr.split(":").map(Number);
+    const [ch, cm] = closeStr.split(":").map(Number);
     const result: { time: Date; available: boolean }[] = [];
     const dayStart = startOfDay(selectedDay);
-    const open = addMinutes(dayStart, OPEN_HOUR * 60);
-    const close = addMinutes(dayStart, CLOSE_HOUR * 60);
+    const open = addMinutes(dayStart, oh * 60 + om);
+    const close = addMinutes(dayStart, ch * 60 + cm);
     let t = open;
     const now = new Date();
     while (addMinutes(t, treatment.duration) <= close) {
       const slotEnd = addMinutes(t, treatment.duration);
-      // Check overlap with any busy slot
       const conflict = busy.some((b) => {
         const bStart = new Date(b.slot_at);
         const bEnd = addMinutes(bStart, b.duration_minutes);
@@ -221,8 +246,10 @@ export function BookingSection({ initialTreatmentId }: Props) {
                 <div className="flex h-24 items-center justify-center text-muted-foreground">
                   <Loader2 className="h-5 w-5 animate-spin" />
                 </div>
+              ) : dayClosed ? (
+                <p className="text-sm text-muted-foreground">Tula no atiende este día.</p>
               ) : slots.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sin huecos para este día.</p>
+                <p className="text-sm text-muted-foreground">Sin huecos disponibles para este día.</p>
               ) : (
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-6">
                   {slots.map((s) => {
