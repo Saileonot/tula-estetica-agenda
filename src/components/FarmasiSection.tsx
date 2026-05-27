@@ -1,4 +1,5 @@
 import { Sparkles, ExternalLink, ShoppingBag, Truck } from "lucide-react";
+import farmasiLogo from "@/assets/farmasi-logo.png";
 
 const FARMASI_URL = "https://www.farmasi.es/tulacira";
 
