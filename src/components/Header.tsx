@@ -10,6 +10,7 @@ export function Header() {
         </Link>
         <nav className="hidden items-center gap-8 text-sm md:flex">
           <a href="/#tratamientos" className="text-muted-foreground transition hover:text-foreground">Tratamientos</a>
+          <a href="/#farmasi" className="text-muted-foreground transition hover:text-foreground">Tienda Farmasi</a>
           <a href="/#reservar" className="text-muted-foreground transition hover:text-foreground">Reservar</a>
           <a href="/#contacto" className="text-muted-foreground transition hover:text-foreground">Contacto</a>
         </nav>
