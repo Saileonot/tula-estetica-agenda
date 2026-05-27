@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import { TREATMENTS, getTreatment } from "@/lib/treatments";
 import { OWNER } from "@/lib/owner";
+import { openWhatsapp } from "@/lib/whatsapp";
 import { Clock, Loader2 } from "lucide-react";
 
 const OPEN_HOUR = 10;
