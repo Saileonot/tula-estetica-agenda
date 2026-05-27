@@ -8,8 +8,10 @@ import { Loader2, Save, Trash2, Plus, CalendarOff } from "lucide-react";
 type WorkingHour = {
   id: string;
   day_of_week: number;
-  open_time: string; // "HH:mm:ss"
-  close_time: string;
+  morning_open: string | null;
+  morning_close: string | null;
+  afternoon_open: string | null;
+  afternoon_close: string | null;
   is_closed: boolean;
 };
 
@@ -22,8 +24,15 @@ type TimeBlock = {
 
 const DAY_LABELS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
-function toHHMM(t: string) {
+function toHHMM(t: string | null): string {
+  if (!t) return "";
   return t.slice(0, 5);
+}
+
+function normalize(t: string): string | null {
+  const v = t.trim();
+  if (!v) return null;
+  return v.length === 5 ? `${v}:00` : v;
 }
 
 export function AvailabilityView() {
@@ -40,7 +49,7 @@ export function AvailabilityView() {
         .gte("ends_at", new Date().toISOString())
         .order("starts_at"),
     ]);
-    setHours((wh as WorkingHour[]) ?? []);
+    setHours((wh as unknown as WorkingHour[]) ?? []);
     setBlocks((tb as TimeBlock[]) ?? []);
   }, []);
 
@@ -57,8 +66,10 @@ export function AvailabilityView() {
       supabase
         .from("working_hours")
         .update({
-          open_time: toHHMM(h.open_time),
-          close_time: toHHMM(h.close_time),
+          morning_open: h.is_closed ? null : normalize(h.morning_open ?? ""),
+          morning_close: h.is_closed ? null : normalize(h.morning_close ?? ""),
+          afternoon_open: h.is_closed ? null : normalize(h.afternoon_open ?? ""),
+          afternoon_close: h.is_closed ? null : normalize(h.afternoon_close ?? ""),
           is_closed: h.is_closed,
         })
         .eq("id", h.id),
@@ -115,7 +126,9 @@ export function AvailabilityView() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="font-display text-xl">Horario semanal</h2>
-            <p className="text-sm text-muted-foreground">Horas en las que aceptas citas habitualmente.</p>
+            <p className="text-sm text-muted-foreground">
+              Define el tramo de mañana y/o tarde. Deja un tramo vacío si no atiendes en él.
+            </p>
           </div>
           <button
             onClick={saveHours}
@@ -129,33 +142,61 @@ export function AvailabilityView() {
 
         <ul className="mt-5 divide-y divide-border">
           {hours.map((h) => (
-            <li key={h.id} className="flex flex-wrap items-center gap-3 py-3">
-              <span className="w-24 text-sm font-medium">{DAY_LABELS[h.day_of_week]}</span>
-              <label className="inline-flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={!h.is_closed}
-                  onChange={(e) => patchHour(h.id, { is_closed: !e.target.checked })}
-                  className="h-4 w-4 accent-primary"
-                />
-                <span className={h.is_closed ? "text-muted-foreground" : ""}>Abierto</span>
-              </label>
-              <div className="ml-auto flex items-center gap-2">
-                <input
-                  type="time"
-                  value={toHHMM(h.open_time)}
-                  disabled={h.is_closed}
-                  onChange={(e) => patchHour(h.id, { open_time: e.target.value })}
-                  className="rounded-lg border border-input bg-background px-2 py-1 text-sm disabled:opacity-50"
-                />
-                <span className="text-muted-foreground">–</span>
-                <input
-                  type="time"
-                  value={toHHMM(h.close_time)}
-                  disabled={h.is_closed}
-                  onChange={(e) => patchHour(h.id, { close_time: e.target.value })}
-                  className="rounded-lg border border-input bg-background px-2 py-1 text-sm disabled:opacity-50"
-                />
+            <li key={h.id} className="grid gap-3 py-4 sm:grid-cols-[110px_1fr] sm:items-start">
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-medium">{DAY_LABELS[h.day_of_week]}</span>
+                <label className="inline-flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={!h.is_closed}
+                    onChange={(e) => patchHour(h.id, { is_closed: !e.target.checked })}
+                    className="h-4 w-4 accent-primary"
+                  />
+                  <span className={h.is_closed ? "text-muted-foreground" : ""}>Abierto</span>
+                </label>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs text-muted-foreground">Mañana</p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <input
+                      type="time"
+                      value={toHHMM(h.morning_open)}
+                      disabled={h.is_closed}
+                      onChange={(e) => patchHour(h.id, { morning_open: e.target.value || null })}
+                      className="rounded-lg border border-input bg-background px-2 py-1 text-sm disabled:opacity-50"
+                    />
+                    <span className="text-muted-foreground">–</span>
+                    <input
+                      type="time"
+                      value={toHHMM(h.morning_close)}
+                      disabled={h.is_closed}
+                      onChange={(e) => patchHour(h.id, { morning_close: e.target.value || null })}
+                      className="rounded-lg border border-input bg-background px-2 py-1 text-sm disabled:opacity-50"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Tarde</p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <input
+                      type="time"
+                      value={toHHMM(h.afternoon_open)}
+                      disabled={h.is_closed}
+                      onChange={(e) => patchHour(h.id, { afternoon_open: e.target.value || null })}
+                      className="rounded-lg border border-input bg-background px-2 py-1 text-sm disabled:opacity-50"
+                    />
+                    <span className="text-muted-foreground">–</span>
+                    <input
+                      type="time"
+                      value={toHHMM(h.afternoon_close)}
+                      disabled={h.is_closed}
+                      onChange={(e) => patchHour(h.id, { afternoon_close: e.target.value || null })}
+                      className="rounded-lg border border-input bg-background px-2 py-1 text-sm disabled:opacity-50"
+                    />
+                  </div>
+                </div>
               </div>
             </li>
           ))}
