@@ -47,7 +47,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   // Horario semanal de Tula (clave = day_of_week 0..6)
-  const [hoursByDay, setHoursByDay] = useState<Record<number, { open: string; close: string; closed: boolean }>>({});
+  const [hoursByDay, setHoursByDay] = useState<Record<number, DayHours>>({});
 
   useEffect(() => {
     if (initialTreatmentId) setTreatmentId(initialTreatmentId);
