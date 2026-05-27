@@ -17,7 +17,7 @@ export function Footer() {
         <div className="text-sm">
           <p className="font-medium">Contacto</p>
           <p className="mt-2 text-muted-foreground">
-            tula@estetica.com
+            @tulaestheticbeauty
             <br />
             +34 682 134 196
           </p>
