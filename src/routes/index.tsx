@@ -7,6 +7,7 @@ import { BookingSection } from "@/components/BookingSection";
 import { Footer } from "@/components/Footer";
 
 export const Route = createFileRoute("/")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Tula estética — Reserva tu cita de belleza" },

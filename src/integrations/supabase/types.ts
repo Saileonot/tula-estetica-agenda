@@ -22,6 +22,7 @@ export type Database = {
           duration_minutes: number
           id: string
           notes: string | null
+          price_eur: number
           slot_at: string
           status: Database["public"]["Enums"]["appointment_status"]
           treatment: string
@@ -33,6 +34,7 @@ export type Database = {
           duration_minutes: number
           id?: string
           notes?: string | null
+          price_eur?: number
           slot_at: string
           status?: Database["public"]["Enums"]["appointment_status"]
           treatment: string
@@ -44,6 +46,7 @@ export type Database = {
           duration_minutes?: number
           id?: string
           notes?: string | null
+          price_eur?: number
           slot_at?: string
           status?: Database["public"]["Enums"]["appointment_status"]
           treatment?: string

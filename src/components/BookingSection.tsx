@@ -5,6 +5,7 @@ import { es } from "date-fns/locale/es";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { TREATMENTS, getTreatment } from "@/lib/treatments";
+import { OWNER } from "@/lib/owner";
 import { Clock, Loader2 } from "lucide-react";
 
 const OPEN_HOUR = 10;
@@ -108,6 +109,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
       client_phone: parsed.data.phone,
       treatment: treatment.name,
       duration_minutes: treatment.duration,
+      price_eur: treatment.price,
       slot_at: selectedSlot.toISOString(),
       status: "pending",
     });
@@ -117,7 +119,17 @@ export function BookingSection({ initialTreatmentId }: Props) {
       console.error(error);
       return;
     }
-    toast.success("¡Solicitud enviada! Tula te confirmará por teléfono.");
+    toast.success("¡Solicitud enviada! Te abrimos WhatsApp para avisar a Tula.");
+
+    // Abrir WhatsApp a Tula con los datos de la cita pre-rellenados.
+    const fechaTexto = format(selectedSlot, "EEEE d 'de' MMMM 'a las' HH:mm", { locale: es });
+    const mensaje =
+      `Hola ${OWNER.name}, soy ${parsed.data.name}. ` +
+      `Acabo de pedir cita para *${treatment.name}* (${treatment.duration} min · ${treatment.price} €) ` +
+      `el ${fechaTexto}. Mi teléfono: ${parsed.data.phone}. ¡Gracias!`;
+    const waUrl = `https://wa.me/${OWNER.whatsappNumber}?text=${encodeURIComponent(mensaje)}`;
+    window.open(waUrl, "_blank", "noopener,noreferrer");
+
     setName(""); setPhone(""); setSelectedSlot(null);
     // refresh busy list
     const from = startOfDay(selectedDay).toISOString();
