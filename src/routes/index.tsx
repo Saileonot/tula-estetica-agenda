@@ -1,29 +1,42 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { Header } from "@/components/Header";
+import { Hero } from "@/components/Hero";
+import { Treatments } from "@/components/Treatments";
+import { BookingSection } from "@/components/BookingSection";
+import { Footer } from "@/components/Footer";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "Tula estética — Reserva tu cita de belleza" },
+      { name: "description", content: "Manicura, pedicura, faciales, maderoterapia, tratamientos reductores y depilación. Reserva online con Tula estética." },
+      { property: "og:title", content: "Tula estética" },
+      { property: "og:description", content: "Tratamientos de estética y bienestar. Reserva online tu cita." },
     ],
   }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  const [selected, setSelected] = useState<string | undefined>(undefined);
+
+  function handleSelect(id: string) {
+    setSelected(id);
+    requestAnimationFrame(() => {
+      document.getElementById("reservar")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen">
+      <Header />
+      <main>
+        <Hero />
+        <Treatments onSelect={handleSelect} />
+        <BookingSection initialTreatmentId={selected} />
+      </main>
+      <Footer />
     </div>
   );
 }
