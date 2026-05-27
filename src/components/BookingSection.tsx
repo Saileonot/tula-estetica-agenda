@@ -246,8 +246,10 @@ export function BookingSection({ initialTreatmentId }: Props) {
                 <div className="flex h-24 items-center justify-center text-muted-foreground">
                   <Loader2 className="h-5 w-5 animate-spin" />
                 </div>
+              ) : dayClosed ? (
+                <p className="text-sm text-muted-foreground">Tula no atiende este día.</p>
               ) : slots.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sin huecos para este día.</p>
+                <p className="text-sm text-muted-foreground">Sin huecos disponibles para este día.</p>
               ) : (
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-6">
                   {slots.map((s) => {
