@@ -84,12 +84,22 @@ export function FarmasiSection() {
                 <p className="font-display text-2xl leading-tight">Cuerpo</p>
               </div>
             </div>
-            <div className="mt-8 aspect-square rounded-3xl bg-gradient-to-br from-primary/40 to-accent/20 p-6 shadow-lg backdrop-blur">
+            <a
+              href="https://www.farmasi.es/tulacira/product-detail/beauty-shot-collagen?pid=1002122"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group mt-8 aspect-square rounded-3xl bg-gradient-to-br from-primary/40 to-accent/20 p-6 shadow-lg backdrop-blur transition hover:shadow-xl hover:-translate-y-1"
+            >
               <div className="flex h-full flex-col justify-between">
-                <span className="text-xs uppercase tracking-[0.25em] text-foreground/70">Parfum</span>
-                <p className="font-display text-2xl leading-tight">Fragancias</p>
+                <span className="text-xs uppercase tracking-[0.25em] text-foreground/70">Nutriplus</span>
+                <div>
+                  <p className="font-display text-2xl leading-tight">Beauty Shot Collagen</p>
+                  <span className="mt-2 inline-flex items-center gap-1 text-xs text-primary opacity-0 transition group-hover:opacity-100">
+                    Comprar <ExternalLink className="h-3 w-3" />
+                  </span>
+                </div>
               </div>
-            </div>
+            </a>
           </div>
         </div>
       </div>
