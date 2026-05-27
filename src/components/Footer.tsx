@@ -22,6 +22,8 @@ export function Footer() {
       </div>
       <div className="border-t border-border py-6 text-center text-xs text-muted-foreground">
         © {new Date().getFullYear()} Tula estética. Hecho con cariño.
+        <span className="mx-2">·</span>
+        <a href="/auth" className="underline hover:text-foreground">Acceso de Tula</a>
       </div>
     </footer>
   );
