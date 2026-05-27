@@ -151,9 +151,12 @@ function AdminPage() {
           <TabBtn active={tab === "requests"} onClick={() => setTab("requests")} icon={<Inbox className="h-4 w-4" />}>
             Solicitudes ({pendingRequests.length})
           </TabBtn>
+          <TabBtn active={tab === "availability"} onClick={() => setTab("availability")} icon={<CalendarClock className="h-4 w-4" />}>
+            Disponibilidad
+          </TabBtn>
         </div>
 
-        {tab === "day" ? (
+        {tab === "day" && (
           <DayView
             selectedDay={selectedDay}
             onChangeDay={setSelectedDay}
@@ -162,7 +165,8 @@ function AdminPage() {
             onCancel={(a) => updateStatus(a, "cancelled")}
             onOpenHistory={(a) => setHistoryFor({ phone: a.client_phone, name: a.client_name })}
           />
-        ) : (
+        )}
+        {tab === "requests" && (
           <RequestsView
             items={pendingRequests}
             onConfirm={(a) => updateStatus(a, "confirmed")}
@@ -170,6 +174,7 @@ function AdminPage() {
             onOpenHistory={(a) => setHistoryFor({ phone: a.client_phone, name: a.client_name })}
           />
         )}
+        {tab === "availability" && <AvailabilityView />}
       </main>
 
       {historyFor && (
