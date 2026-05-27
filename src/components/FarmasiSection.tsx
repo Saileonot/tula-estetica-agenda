@@ -1,4 +1,5 @@
 import { Sparkles, ExternalLink, ShoppingBag, Truck } from "lucide-react";
+import farmasiLogo from "@/assets/farmasi-logo.png";
 
 const FARMASI_URL = "https://www.farmasi.es/tulacira";
 
@@ -15,6 +16,11 @@ export function FarmasiSection() {
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-background/70 px-4 py-1.5 text-xs uppercase tracking-[0.25em] text-primary backdrop-blur">
             <Sparkles className="h-3.5 w-3.5" /> Tienda oficial Farmasi
           </span>
+          <img
+            src={farmasiLogo}
+            alt="Farmasi - be well"
+            className="h-16 w-auto md:h-20"
+          />
           <h2 className="font-display text-4xl tracking-tight md:text-5xl">
             Llévate la cosmética que <span className="italic text-primary">Tula</span> usa contigo a casa
           </h2>
