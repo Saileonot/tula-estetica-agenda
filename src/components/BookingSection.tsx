@@ -5,9 +5,15 @@ import { es } from "date-fns/locale/es";
 import { toast } from "sonner";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import { TREATMENTS, getTreatment } from "@/lib/treatments";
-import { OWNER } from "@/lib/owner";
-import { openWhatsapp } from "@/lib/whatsapp";
-import { Clock, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Clock, Loader2, CheckCircle2 } from "lucide-react";
 
 const OPEN_HOUR = 10;
 const CLOSE_HOUR = 19;
