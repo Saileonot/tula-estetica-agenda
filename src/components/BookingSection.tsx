@@ -67,14 +67,19 @@ export function BookingSection({ initialTreatmentId }: Props) {
   useEffect(() => {
     (async () => {
       const sb = await getSupabaseClient();
-      const { data } = await sb.from("working_hours").select("day_of_week, open_time, close_time, is_closed");
-      const map: Record<number, { open: string; close: string; closed: boolean }> = {};
-      (data ?? []).forEach((h: { day_of_week: number; open_time: string; close_time: string; is_closed: boolean }) => {
-        map[h.day_of_week] = { open: h.open_time, close: h.close_time, closed: h.is_closed };
+      const { data } = await sb.from("working_hours").select("day_of_week, morning_open, morning_close, afternoon_open, afternoon_close, is_closed");
+      const map: Record<number, DayHours> = {};
+      (data ?? []).forEach((h: { day_of_week: number; morning_open: string | null; morning_close: string | null; afternoon_open: string | null; afternoon_close: string | null; is_closed: boolean }) => {
+        map[h.day_of_week] = {
+          morning: h.morning_open && h.morning_close ? { open: h.morning_open, close: h.morning_close } : null,
+          afternoon: h.afternoon_open && h.afternoon_close ? { open: h.afternoon_open, close: h.afternoon_close } : null,
+          closed: h.is_closed,
+        };
       });
       setHoursByDay(map);
     })();
   }, []);
+
 
   const days = useMemo(() => {
     const today = startOfDay(new Date());
