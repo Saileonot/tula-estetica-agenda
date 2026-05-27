@@ -153,15 +153,21 @@ function AdminPage() {
 
       <main className="mx-auto max-w-6xl px-6 py-10">
         {/* Tabs */}
-        <div className="mb-6 inline-flex rounded-full border border-border bg-background p-1">
+        <div className="mb-6 flex flex-wrap gap-1 rounded-2xl border border-border bg-background p-1 sm:inline-flex sm:rounded-full">
           <TabBtn active={tab === "day"} onClick={() => setTab("day")} icon={<CalendarIcon className="h-4 w-4" />}>
-            Agenda del día
+            Día
+          </TabBtn>
+          <TabBtn active={tab === "month"} onClick={() => setTab("month")} icon={<CalendarDays className="h-4 w-4" />}>
+            Mes
           </TabBtn>
           <TabBtn active={tab === "requests"} onClick={() => setTab("requests")} icon={<Inbox className="h-4 w-4" />}>
             Solicitudes ({pendingRequests.length})
           </TabBtn>
           <TabBtn active={tab === "availability"} onClick={() => setTab("availability")} icon={<CalendarClock className="h-4 w-4" />}>
             Disponibilidad
+          </TabBtn>
+          <TabBtn active={tab === "treatments"} onClick={() => setTab("treatments")} icon={<Sparkles className="h-4 w-4" />}>
+            Tratamientos
           </TabBtn>
         </div>
 
@@ -175,6 +181,14 @@ function AdminPage() {
             onOpenHistory={(a) => setHistoryFor({ phone: a.client_phone, name: a.client_name })}
           />
         )}
+        {tab === "month" && (
+          <MonthView
+            month={selectedMonth}
+            onChangeMonth={setSelectedMonth}
+            items={appointments}
+            onPickDay={(d) => { setSelectedDay(startOfDay(d)); setTab("day"); }}
+          />
+        )}
         {tab === "requests" && (
           <RequestsView
             items={pendingRequests}
@@ -184,6 +198,7 @@ function AdminPage() {
           />
         )}
         {tab === "availability" && <AvailabilityView />}
+        {tab === "treatments" && <TreatmentsView />}
       </main>
 
       {historyFor && (
