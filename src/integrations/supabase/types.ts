@@ -77,6 +77,42 @@ export type Database = {
         }
         Relationships: []
       }
+      treatments: {
+        Row: {
+          created_at: string
+          description: string
+          duration_minutes: number
+          id: string
+          is_active: boolean
+          name: string
+          price_eur: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          duration_minutes: number
+          id: string
+          is_active?: boolean
+          name: string
+          price_eur: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          price_eur?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

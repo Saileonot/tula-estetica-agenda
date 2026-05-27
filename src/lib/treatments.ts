@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import manicura from "@/assets/manicura.jpg";
 import facial from "@/assets/facial.jpg";
 import maderoterapia from "@/assets/maderoterapia.jpg";
@@ -12,57 +14,68 @@ export type Treatment = {
   duration: number; // minutes
   price: number;   // EUR
   image: string;
+  is_active: boolean;
+  sort_order: number;
 };
 
-export const TREATMENTS: Treatment[] = [
-  {
-    id: "manicura",
-    name: "Manicura",
-    description: "Cuidado profesional de uñas con esmaltado de larga duración.",
-    duration: 45,
-    price: 22,
-    image: manicura,
-  },
-  {
-    id: "pedicura",
-    name: "Pedicura",
-    description: "Tratamiento completo de pies, limado, hidratación y esmaltado.",
-    duration: 60,
-    price: 30,
-    image: pedicura,
-  },
-  {
-    id: "facial",
-    name: "Tratamiento Facial",
-    description: "Limpieza profunda, exfoliación y mascarilla revitalizante.",
-    duration: 60,
-    price: 45,
-    image: facial,
-  },
-  {
-    id: "maderoterapia",
-    name: "Masaje con Maderoterapia",
-    description: "Masaje moldeante con instrumentos de madera para activar la circulación.",
-    duration: 75,
-    price: 55,
-    image: maderoterapia,
-  },
-  {
-    id: "reductor",
-    name: "Tratamiento Reductor",
-    description: "Sesión intensiva para reducir contornos y tonificar la piel.",
-    duration: 60,
-    price: 50,
-    image: reductor,
-  },
-  {
-    id: "depilacion",
-    name: "Depilación",
-    description: "Depilación con cera tibia, suave y precisa.",
-    duration: 30,
-    price: 18,
-    image: depilacion,
-  },
-];
+// Imágenes por id (slug). Si se crea un tratamiento nuevo sin imagen mapeada,
+// se usa una por defecto.
+const IMAGES: Record<string, string> = {
+  manicura,
+  pedicura,
+  facial,
+  maderoterapia,
+  reductor,
+  depilacion,
+};
 
-export const getTreatment = (id: string) => TREATMENTS.find((t) => t.id === id);
+const FALLBACK_IMAGE = facial;
+
+type Row = {
+  id: string;
+  name: string;
+  description: string;
+  duration_minutes: number;
+  price_eur: number | string;
+  is_active: boolean;
+  sort_order: number;
+};
+
+function rowToTreatment(r: Row): Treatment {
+  return {
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    duration: r.duration_minutes,
+    price: Number(r.price_eur),
+    image: IMAGES[r.id] ?? FALLBACK_IMAGE,
+    is_active: r.is_active,
+    sort_order: r.sort_order,
+  };
+}
+
+export async function fetchTreatments(opts?: { onlyActive?: boolean }): Promise<Treatment[]> {
+  let q = supabase.from("treatments").select("*").order("sort_order", { ascending: true });
+  if (opts?.onlyActive) q = q.eq("is_active", true);
+  const { data, error } = await q;
+  if (error) {
+    console.error("fetchTreatments", error);
+    return [];
+  }
+  return (data as Row[]).map(rowToTreatment);
+}
+
+export function useTreatments(opts?: { onlyActive?: boolean }) {
+  const [treatments, setTreatments] = useState<Treatment[] | null>(null);
+  const onlyActive = opts?.onlyActive ?? false;
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchTreatments({ onlyActive }).then((t) => {
+      if (!cancelled) setTreatments(t);
+    });
+    return () => { cancelled = true; };
+  }, [onlyActive]);
+
+  return treatments;
+}

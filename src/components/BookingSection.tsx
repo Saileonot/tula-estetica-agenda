@@ -4,7 +4,7 @@ import { addDays, addMinutes, format, isSameDay, startOfDay } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { toast } from "sonner";
 import { getSupabaseClient } from "@/lib/supabase-client";
-import { TREATMENTS, getTreatment } from "@/lib/treatments";
+import { useTreatments, type Treatment } from "@/lib/treatments";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +34,8 @@ type Props = {
 };
 
 export function BookingSection({ initialTreatmentId }: Props) {
-  const [treatmentId, setTreatmentId] = useState(initialTreatmentId ?? TREATMENTS[0].id);
+  const treatments = useTreatments({ onlyActive: true });
+  const [treatmentId, setTreatmentId] = useState<string | null>(initialTreatmentId ?? null);
   const [selectedDay, setSelectedDay] = useState<Date>(() => startOfDay(addDays(new Date(), 1)));
   const [selectedSlot, setSelectedSlot] = useState<Date | null>(null);
   const [busy, setBusy] = useState<Busy[]>([]);
@@ -46,9 +47,19 @@ export function BookingSection({ initialTreatmentId }: Props) {
   // Horario semanal de Tula (clave = day_of_week 0..6)
   const [hoursByDay, setHoursByDay] = useState<Record<number, { open: string; close: string; closed: boolean }>>({});
 
-  useEffect(() => { setTreatmentId(initialTreatmentId ?? treatmentId); /* eslint-disable-next-line */ }, [initialTreatmentId]);
+  useEffect(() => {
+    if (initialTreatmentId) setTreatmentId(initialTreatmentId);
+  }, [initialTreatmentId]);
 
-  const treatment = getTreatment(treatmentId)!;
+  // Cuando se cargan los tratamientos, asegurar selección por defecto
+  useEffect(() => {
+    if (treatments && treatments.length > 0 && !treatments.some((t) => t.id === treatmentId)) {
+      setTreatmentId(treatments[0].id);
+    }
+  }, [treatments, treatmentId]);
+
+  const treatment: Treatment | null =
+    treatments?.find((t) => t.id === treatmentId) ?? null;
 
   // Cargar horario semanal una vez
   useEffect(() => {
@@ -99,7 +110,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
   }, [hoursByDay, selectedDay]);
 
   const slots = useMemo(() => {
-    if (dayClosed) return [];
+    if (dayClosed || !treatment) return [];
     const h = hoursByDay[selectedDay.getDay()];
     const openStr = h?.open ?? DEFAULT_OPEN;
     const closeStr = h?.close ?? DEFAULT_CLOSE;
@@ -123,11 +134,11 @@ export function BookingSection({ initialTreatmentId }: Props) {
       t = addMinutes(t, SLOT_MINUTES);
     }
     return result;
-  }, [selectedDay, busy, treatment.duration]);
+  }, [selectedDay, busy, treatment, hoursByDay, dayClosed]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedSlot) {
+    if (!selectedSlot || !treatment) {
       toast.error("Elige un horario disponible");
       return;
     }
@@ -140,7 +151,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
   }
 
   async function handleConfirm() {
-    if (!selectedSlot) return;
+    if (!selectedSlot || !treatment) return;
     const parsed = formSchema.safeParse({ name, phone });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
@@ -172,6 +183,16 @@ export function BookingSection({ initialTreatmentId }: Props) {
     setBusy((data as Busy[]) ?? []);
   }
 
+  if (!treatments || !treatment) {
+    return (
+      <section id="reservar" className="bg-secondary/40 py-24">
+        <div className="mx-auto flex max-w-5xl justify-center px-6">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      </section>
+    );
+  }
+
 
   return (
     <section id="reservar" className="bg-secondary/40 py-24">
@@ -191,7 +212,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
           <div>
             <label className="text-sm font-medium">Tratamiento</label>
             <div className="mt-3 flex flex-wrap gap-2">
-              {TREATMENTS.map((t) => (
+              {treatments.map((t) => (
                 <button
                   key={t.id}
                   type="button"

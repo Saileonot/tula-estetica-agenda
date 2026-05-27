@@ -1,16 +1,19 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { addDays, format, isSameDay, startOfDay, subDays, subYears } from "date-fns";
+import { addDays, format, isSameDay, startOfDay, startOfMonth, subDays, subYears } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { toast } from "sonner";
 import {
   Loader2, Check, X, LogOut, Phone, ChevronLeft, ChevronRight,
   Calendar as CalendarIcon, Inbox, MessageCircle, History, CalendarClock,
+  CalendarDays, Sparkles,
 } from "lucide-react";
 import { OWNER } from "@/lib/owner";
 import { buildWhatsappUrl, openWhatsapp } from "@/lib/whatsapp";
 import { AvailabilityView } from "@/components/admin/AvailabilityView";
+import { TreatmentsView } from "@/components/admin/TreatmentsView";
+import { MonthView } from "@/components/admin/MonthView";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -30,7 +33,7 @@ type Appointment = {
   created_at: string;
 };
 
-type Tab = "day" | "requests" | "availability";
+type Tab = "day" | "month" | "requests" | "availability" | "treatments";
 
 function AdminPage() {
   const navigate = useNavigate();
@@ -39,6 +42,7 @@ function AdminPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [tab, setTab] = useState<Tab>("day");
   const [selectedDay, setSelectedDay] = useState<Date>(() => startOfDay(new Date()));
+  const [selectedMonth, setSelectedMonth] = useState<Date>(() => startOfMonth(new Date()));
   const [historyFor, setHistoryFor] = useState<{ phone: string; name: string } | null>(null);
 
   const load = useCallback(async () => {
@@ -75,13 +79,18 @@ function AdminPage() {
     const { error } = await supabase.from("appointments").update({ status }).eq("id", a.id);
     if (error) { toast.error("Error al actualizar"); return; }
     toast.success(status === "confirmed" ? "Cita confirmada" : "Cita cancelada");
+    const fechaTexto = format(new Date(a.slot_at), "EEEE d 'de' MMMM 'a las' HH:mm", { locale: es });
     if (status === "confirmed") {
-      // Abrir WhatsApp para enviar confirmación a la clienta
-      const fechaTexto = format(new Date(a.slot_at), "EEEE d 'de' MMMM 'a las' HH:mm", { locale: es });
       const msg =
         `Hola ${a.client_name}, soy ${OWNER.name} 💕. ` +
         `Te confirmo tu cita de *${a.treatment}* el ${fechaTexto}. ` +
         `¡Te espero!`;
+      openWhatsapp(a.client_phone, msg);
+    } else if (status === "cancelled") {
+      const msg =
+        `Hola ${a.client_name}, soy ${OWNER.name}. ` +
+        `Lamento informarte de que tu cita de *${a.treatment}* del ${fechaTexto} ha sido *cancelada*. ` +
+        `Si quieres, escríbeme y buscamos otro hueco. ¡Gracias por tu comprensión! 💕`;
       openWhatsapp(a.client_phone, msg);
     }
     load();
@@ -144,15 +153,21 @@ function AdminPage() {
 
       <main className="mx-auto max-w-6xl px-6 py-10">
         {/* Tabs */}
-        <div className="mb-6 inline-flex rounded-full border border-border bg-background p-1">
+        <div className="mb-6 flex flex-wrap gap-1 rounded-2xl border border-border bg-background p-1 sm:inline-flex sm:rounded-full">
           <TabBtn active={tab === "day"} onClick={() => setTab("day")} icon={<CalendarIcon className="h-4 w-4" />}>
-            Agenda del día
+            Día
+          </TabBtn>
+          <TabBtn active={tab === "month"} onClick={() => setTab("month")} icon={<CalendarDays className="h-4 w-4" />}>
+            Mes
           </TabBtn>
           <TabBtn active={tab === "requests"} onClick={() => setTab("requests")} icon={<Inbox className="h-4 w-4" />}>
             Solicitudes ({pendingRequests.length})
           </TabBtn>
           <TabBtn active={tab === "availability"} onClick={() => setTab("availability")} icon={<CalendarClock className="h-4 w-4" />}>
             Disponibilidad
+          </TabBtn>
+          <TabBtn active={tab === "treatments"} onClick={() => setTab("treatments")} icon={<Sparkles className="h-4 w-4" />}>
+            Tratamientos
           </TabBtn>
         </div>
 
@@ -166,6 +181,14 @@ function AdminPage() {
             onOpenHistory={(a) => setHistoryFor({ phone: a.client_phone, name: a.client_name })}
           />
         )}
+        {tab === "month" && (
+          <MonthView
+            month={selectedMonth}
+            onChangeMonth={setSelectedMonth}
+            items={appointments}
+            onPickDay={(d) => { setSelectedDay(startOfDay(d)); setTab("day"); }}
+          />
+        )}
         {tab === "requests" && (
           <RequestsView
             items={pendingRequests}
@@ -175,6 +198,7 @@ function AdminPage() {
           />
         )}
         {tab === "availability" && <AvailabilityView />}
+        {tab === "treatments" && <TreatmentsView />}
       </main>
 
       {historyFor && (
