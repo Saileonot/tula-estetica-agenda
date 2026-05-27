@@ -30,7 +30,7 @@ type Appointment = {
   created_at: string;
 };
 
-type Tab = "day" | "requests";
+type Tab = "day" | "requests" | "availability";
 
 function AdminPage() {
   const navigate = useNavigate();
