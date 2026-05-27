@@ -128,8 +128,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
       `Hola ${OWNER.name}, soy ${parsed.data.name}. ` +
       `Acabo de pedir cita para *${treatment.name}* (${treatment.duration} min · ${treatment.price} €) ` +
       `el ${fechaTexto}. Mi teléfono: ${parsed.data.phone}. ¡Gracias!`;
-    const waUrl = `https://wa.me/${OWNER.whatsappNumber}?text=${encodeURIComponent(mensaje)}`;
-    window.open(waUrl, "_blank", "noopener,noreferrer");
+    openWhatsapp(OWNER.whatsappNumber, mensaje);
 
     setName(""); setPhone(""); setSelectedSlot(null);
     // refresh busy list
