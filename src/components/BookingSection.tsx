@@ -17,8 +17,10 @@ import { Clock, Loader2, CheckCircle2 } from "lucide-react";
 
 const SLOT_MINUTES = 30;
 const DAYS_AHEAD = 14;
-const DEFAULT_OPEN = "10:00:00";
-const DEFAULT_CLOSE = "19:00:00";
+
+type Range = { open: string; close: string };
+type DayHours = { morning: Range | null; afternoon: Range | null; closed: boolean };
+
 
 const phoneRegex = /^[+0-9\s]{6,20}$/;
 
@@ -45,7 +47,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   // Horario semanal de Tula (clave = day_of_week 0..6)
-  const [hoursByDay, setHoursByDay] = useState<Record<number, { open: string; close: string; closed: boolean }>>({});
+  const [hoursByDay, setHoursByDay] = useState<Record<number, DayHours>>({});
 
   useEffect(() => {
     if (initialTreatmentId) setTreatmentId(initialTreatmentId);
@@ -65,14 +67,19 @@ export function BookingSection({ initialTreatmentId }: Props) {
   useEffect(() => {
     (async () => {
       const sb = await getSupabaseClient();
-      const { data } = await sb.from("working_hours").select("day_of_week, open_time, close_time, is_closed");
-      const map: Record<number, { open: string; close: string; closed: boolean }> = {};
-      (data ?? []).forEach((h: { day_of_week: number; open_time: string; close_time: string; is_closed: boolean }) => {
-        map[h.day_of_week] = { open: h.open_time, close: h.close_time, closed: h.is_closed };
+      const { data } = await sb.from("working_hours").select("day_of_week, morning_open, morning_close, afternoon_open, afternoon_close, is_closed");
+      const map: Record<number, DayHours> = {};
+      (data ?? []).forEach((h: { day_of_week: number; morning_open: string | null; morning_close: string | null; afternoon_open: string | null; afternoon_close: string | null; is_closed: boolean }) => {
+        map[h.day_of_week] = {
+          morning: h.morning_open && h.morning_close ? { open: h.morning_open, close: h.morning_close } : null,
+          afternoon: h.afternoon_open && h.afternoon_close ? { open: h.afternoon_open, close: h.afternoon_close } : null,
+          closed: h.is_closed,
+        };
       });
       setHoursByDay(map);
     })();
   }, []);
+
 
   const days = useMemo(() => {
     const today = startOfDay(new Date());
@@ -112,29 +119,32 @@ export function BookingSection({ initialTreatmentId }: Props) {
   const slots = useMemo(() => {
     if (dayClosed || !treatment) return [];
     const h = hoursByDay[selectedDay.getDay()];
-    const openStr = h?.open ?? DEFAULT_OPEN;
-    const closeStr = h?.close ?? DEFAULT_CLOSE;
-    const [oh, om] = openStr.split(":").map(Number);
-    const [ch, cm] = closeStr.split(":").map(Number);
+    const ranges = [h?.morning, h?.afternoon].filter(Boolean) as Range[];
+    if (ranges.length === 0) return [];
     const result: { time: Date; available: boolean }[] = [];
     const dayStart = startOfDay(selectedDay);
-    const open = addMinutes(dayStart, oh * 60 + om);
-    const close = addMinutes(dayStart, ch * 60 + cm);
-    let t = open;
     const now = new Date();
-    while (addMinutes(t, treatment.duration) <= close) {
-      const slotEnd = addMinutes(t, treatment.duration);
-      const conflict = busy.some((b) => {
-        const bStart = new Date(b.slot_at);
-        const bEnd = addMinutes(bStart, b.duration_minutes);
-        return t < bEnd && slotEnd > bStart;
-      });
-      const inPast = t <= now;
-      result.push({ time: new Date(t), available: !conflict && !inPast });
-      t = addMinutes(t, SLOT_MINUTES);
+    for (const r of ranges) {
+      const [oh, om] = r.open.split(":").map(Number);
+      const [ch, cm] = r.close.split(":").map(Number);
+      const open = addMinutes(dayStart, oh * 60 + om);
+      const close = addMinutes(dayStart, ch * 60 + cm);
+      let t = open;
+      while (addMinutes(t, treatment.duration) <= close) {
+        const slotEnd = addMinutes(t, treatment.duration);
+        const conflict = busy.some((b) => {
+          const bStart = new Date(b.slot_at);
+          const bEnd = addMinutes(bStart, b.duration_minutes);
+          return t < bEnd && slotEnd > bStart;
+        });
+        const inPast = t <= now;
+        result.push({ time: new Date(t), available: !conflict && !inPast });
+        t = addMinutes(t, SLOT_MINUTES);
+      }
     }
     return result;
   }, [selectedDay, busy, treatment, hoursByDay, dayClosed]);
+
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

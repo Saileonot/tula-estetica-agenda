@@ -14,12 +14,12 @@ export type Treatment = {
   duration: number; // minutes
   price: number;   // EUR
   image: string;
+  image_url: string | null;
   is_active: boolean;
   sort_order: number;
 };
 
-// Imágenes por id (slug). Si se crea un tratamiento nuevo sin imagen mapeada,
-// se usa una por defecto.
+// Imágenes por id (slug) para tratamientos legacy sin imagen subida.
 const IMAGES: Record<string, string> = {
   manicura,
   pedicura,
@@ -39,6 +39,7 @@ type Row = {
   price_eur: number | string;
   is_active: boolean;
   sort_order: number;
+  image_url: string | null;
 };
 
 function rowToTreatment(r: Row): Treatment {
@@ -48,11 +49,13 @@ function rowToTreatment(r: Row): Treatment {
     description: r.description,
     duration: r.duration_minutes,
     price: Number(r.price_eur),
-    image: IMAGES[r.id] ?? FALLBACK_IMAGE,
+    image: r.image_url ?? IMAGES[r.id] ?? FALLBACK_IMAGE,
+    image_url: r.image_url,
     is_active: r.is_active,
     sort_order: r.sort_order,
   };
 }
+
 
 export async function fetchTreatments(opts?: { onlyActive?: boolean }): Promise<Treatment[]> {
   let q = supabase.from("treatments").select("*").order("sort_order", { ascending: true });
