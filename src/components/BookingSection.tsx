@@ -40,6 +40,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
   const [busy, setBusy] = useState<Busy[]>([]);
   const [loadingBusy, setLoadingBusy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
