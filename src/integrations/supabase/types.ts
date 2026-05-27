@@ -83,6 +83,7 @@ export type Database = {
           description: string
           duration_minutes: number
           id: string
+          image_url: string | null
           is_active: boolean
           name: string
           price_eur: number
@@ -94,6 +95,7 @@ export type Database = {
           description?: string
           duration_minutes: number
           id: string
+          image_url?: string | null
           is_active?: boolean
           name: string
           price_eur: number
@@ -105,6 +107,7 @@ export type Database = {
           description?: string
           duration_minutes?: number
           id?: string
+          image_url?: string | null
           is_active?: boolean
           name?: string
           price_eur?: number
@@ -136,27 +139,33 @@ export type Database = {
       }
       working_hours: {
         Row: {
-          close_time: string
+          afternoon_close: string | null
+          afternoon_open: string | null
           day_of_week: number
           id: string
           is_closed: boolean
-          open_time: string
+          morning_close: string | null
+          morning_open: string | null
           updated_at: string
         }
         Insert: {
-          close_time?: string
+          afternoon_close?: string | null
+          afternoon_open?: string | null
           day_of_week: number
           id?: string
           is_closed?: boolean
-          open_time?: string
+          morning_close?: string | null
+          morning_open?: string | null
           updated_at?: string
         }
         Update: {
-          close_time?: string
+          afternoon_close?: string | null
+          afternoon_open?: string | null
           day_of_week?: number
           id?: string
           is_closed?: boolean
-          open_time?: string
+          morning_close?: string | null
+          morning_open?: string | null
           updated_at?: string
         }
         Relationships: []
