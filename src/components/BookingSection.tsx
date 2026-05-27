@@ -43,10 +43,25 @@ export function BookingSection({ initialTreatmentId }: Props) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  // Horario semanal de Tula (clave = day_of_week 0..6)
+  const [hoursByDay, setHoursByDay] = useState<Record<number, { open: string; close: string; closed: boolean }>>({});
 
   useEffect(() => { setTreatmentId(initialTreatmentId ?? treatmentId); /* eslint-disable-next-line */ }, [initialTreatmentId]);
 
   const treatment = getTreatment(treatmentId)!;
+
+  // Cargar horario semanal una vez
+  useEffect(() => {
+    (async () => {
+      const sb = await getSupabaseClient();
+      const { data } = await sb.from("working_hours").select("day_of_week, open_time, close_time, is_closed");
+      const map: Record<number, { open: string; close: string; closed: boolean }> = {};
+      (data ?? []).forEach((h: { day_of_week: number; open_time: string; close_time: string; is_closed: boolean }) => {
+        map[h.day_of_week] = { open: h.open_time, close: h.close_time, closed: h.is_closed };
+      });
+      setHoursByDay(map);
+    })();
+  }, []);
 
   const days = useMemo(() => {
     const today = startOfDay(new Date());
@@ -77,17 +92,27 @@ export function BookingSection({ initialTreatmentId }: Props) {
     return () => { cancelled = true; };
   }, [selectedDay]);
 
-  // Generate slot grid for that day
+  // Generate slot grid for that day, según horario semanal
+  const dayClosed = useMemo(() => {
+    const h = hoursByDay[selectedDay.getDay()];
+    return h?.closed ?? false;
+  }, [hoursByDay, selectedDay]);
+
   const slots = useMemo(() => {
+    if (dayClosed) return [];
+    const h = hoursByDay[selectedDay.getDay()];
+    const openStr = h?.open ?? DEFAULT_OPEN;
+    const closeStr = h?.close ?? DEFAULT_CLOSE;
+    const [oh, om] = openStr.split(":").map(Number);
+    const [ch, cm] = closeStr.split(":").map(Number);
     const result: { time: Date; available: boolean }[] = [];
     const dayStart = startOfDay(selectedDay);
-    const open = addMinutes(dayStart, OPEN_HOUR * 60);
-    const close = addMinutes(dayStart, CLOSE_HOUR * 60);
+    const open = addMinutes(dayStart, oh * 60 + om);
+    const close = addMinutes(dayStart, ch * 60 + cm);
     let t = open;
     const now = new Date();
     while (addMinutes(t, treatment.duration) <= close) {
       const slotEnd = addMinutes(t, treatment.duration);
-      // Check overlap with any busy slot
       const conflict = busy.some((b) => {
         const bStart = new Date(b.slot_at);
         const bEnd = addMinutes(bStart, b.duration_minutes);
