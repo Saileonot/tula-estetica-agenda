@@ -1,6 +1,5 @@
 import { Sparkles, ExternalLink, ShoppingBag, Truck } from "lucide-react";
 import farmasiLogo from "@/assets/farmasi-logo.png";
-import paprikaChili from "@/assets/farmasi-paprika-chili.webp";
 
 const FARMASI_URL = "https://www.farmasi.es/tulacira";
 
@@ -85,16 +84,11 @@ export function FarmasiSection() {
               rel="noopener noreferrer"
               className="group aspect-square rounded-3xl bg-gradient-to-br from-secondary to-primary/20 p-6 shadow-lg backdrop-blur transition hover:shadow-xl hover:-translate-y-1"
             >
-              <div className="flex h-full flex-col justify-between gap-3">
+              <div className="flex h-full flex-col justify-between">
                 <span className="text-xs uppercase tracking-[0.25em] text-foreground/70">Cuerpo</span>
-                <img
-                  src={paprikaChili}
-                  alt="Dr. C. Tuna Paprika & Chili Balsam Massage Gel"
-                  className="mx-auto h-24 w-auto object-contain"
-                />
                 <div>
-                  <p className="font-display text-lg leading-tight">Paprika & Chili Massage Gel</p>
-                  <span className="mt-1 inline-flex items-center gap-1 text-xs text-primary opacity-0 transition group-hover:opacity-100">
+                  <p className="font-display text-2xl leading-tight">Paprika & Chili Massage Gel</p>
+                  <span className="mt-2 inline-flex items-center gap-1 text-xs text-primary opacity-0 transition group-hover:opacity-100">
                     Comprar <ExternalLink className="h-3 w-3" />
                   </span>
                 </div>
