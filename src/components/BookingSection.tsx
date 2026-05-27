@@ -15,10 +15,10 @@ import {
 } from "@/components/ui/dialog";
 import { Clock, Loader2, CheckCircle2 } from "lucide-react";
 
-const OPEN_HOUR = 10;
-const CLOSE_HOUR = 19;
 const SLOT_MINUTES = 30;
 const DAYS_AHEAD = 14;
+const DEFAULT_OPEN = "10:00:00";
+const DEFAULT_CLOSE = "19:00:00";
 
 const phoneRegex = /^[+0-9\s]{6,20}$/;
 
