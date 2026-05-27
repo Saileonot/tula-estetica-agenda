@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Loader2, Check, X, LogOut, Phone } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
+  ssr: false,
   head: () => ({ meta: [{ title: "Panel · Tula estética" }] }),
   component: AdminPage,
 });
