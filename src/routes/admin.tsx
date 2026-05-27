@@ -339,7 +339,7 @@ function AppointmentCard({
                 <Phone className="h-3.5 w-3.5" /> {a.client_phone}
               </a>
               <a
-                href={`https://wa.me/${cleanPhone(a.client_phone)}`}
+                href={buildWhatsappUrl(a.client_phone, "")}
                 target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-emerald-700 hover:underline"
               >
