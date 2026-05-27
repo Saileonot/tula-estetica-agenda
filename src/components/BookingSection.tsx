@@ -3,7 +3,7 @@ import { z } from "zod";
 import { addDays, addMinutes, format, isSameDay, startOfDay } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from "@/lib/supabase-client";
 import { TREATMENTS, getTreatment } from "@/lib/treatments";
 import { OWNER } from "@/lib/owner";
 import { Clock, Loader2 } from "lucide-react";
