@@ -3,7 +3,7 @@ import { z } from "zod";
 import { addDays, addMinutes, format, isSameDay, startOfDay } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from "@/lib/supabase-client";
 import { TREATMENTS, getTreatment } from "@/lib/treatments";
 import { OWNER } from "@/lib/owner";
 import { Clock, Loader2 } from "lucide-react";
@@ -55,7 +55,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
       setLoadingBusy(true);
       const from = startOfDay(selectedDay).toISOString();
       const to = addDays(startOfDay(selectedDay), 1).toISOString();
-      const { data, error } = await supabase.rpc("get_busy_slots", { _from: from, _to: to });
+      const { data, error } = await (await getSupabaseClient()).rpc("get_busy_slots", { _from: from, _to: to });
       if (cancelled) return;
       if (error) {
         console.error(error);
@@ -104,7 +104,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("appointments").insert({
+    const { error } = await (await getSupabaseClient()).from("appointments").insert({
       client_name: parsed.data.name,
       client_phone: parsed.data.phone,
       treatment: treatment.name,
@@ -134,7 +134,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
     // refresh busy list
     const from = startOfDay(selectedDay).toISOString();
     const to = addDays(startOfDay(selectedDay), 1).toISOString();
-    const { data } = await supabase.rpc("get_busy_slots", { _from: from, _to: to });
+    const { data } = await (await getSupabaseClient()).rpc("get_busy_slots", { _from: from, _to: to });
     setBusy((data as Busy[]) ?? []);
   }
 
