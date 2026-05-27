@@ -428,7 +428,7 @@ function ClientHistoryDialog({
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Ficha de clienta</p>
             <h2 className="mt-1 font-display text-2xl">{name}</h2>
             <a
-              href={`https://wa.me/${cleanPhone(phone)}`}
+              href={buildWhatsappUrl(phone, "")}
               target="_blank" rel="noopener noreferrer"
               className="mt-1 inline-flex items-center gap-1.5 text-sm text-emerald-700 hover:underline"
             >
