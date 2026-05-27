@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import { TREATMENTS, getTreatment } from "@/lib/treatments";
 import { OWNER } from "@/lib/owner";
+import { openWhatsapp } from "@/lib/whatsapp";
 import { Clock, Loader2 } from "lucide-react";
 
 const OPEN_HOUR = 10;
@@ -127,8 +128,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
       `Hola ${OWNER.name}, soy ${parsed.data.name}. ` +
       `Acabo de pedir cita para *${treatment.name}* (${treatment.duration} min · ${treatment.price} €) ` +
       `el ${fechaTexto}. Mi teléfono: ${parsed.data.phone}. ¡Gracias!`;
-    const waUrl = `https://wa.me/${OWNER.whatsappNumber}?text=${encodeURIComponent(mensaje)}`;
-    window.open(waUrl, "_blank", "noopener,noreferrer");
+    openWhatsapp(OWNER.whatsappNumber, mensaje);
 
     setName(""); setPhone(""); setSelectedSlot(null);
     // refresh busy list

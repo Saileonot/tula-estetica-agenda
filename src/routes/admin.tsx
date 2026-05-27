@@ -9,6 +9,7 @@ import {
   Calendar as CalendarIcon, Inbox, MessageCircle, History,
 } from "lucide-react";
 import { OWNER } from "@/lib/owner";
+import { buildWhatsappUrl, openWhatsapp } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -80,8 +81,7 @@ function AdminPage() {
         `Hola ${a.client_name}, soy ${OWNER.name} 💕. ` +
         `Te confirmo tu cita de *${a.treatment}* el ${fechaTexto}. ` +
         `¡Te espero!`;
-      const wa = `https://wa.me/${cleanPhone(a.client_phone)}?text=${encodeURIComponent(msg)}`;
-      window.open(wa, "_blank", "noopener,noreferrer");
+      openWhatsapp(a.client_phone, msg);
     }
     load();
   }
@@ -339,7 +339,7 @@ function AppointmentCard({
                 <Phone className="h-3.5 w-3.5" /> {a.client_phone}
               </a>
               <a
-                href={`https://wa.me/${cleanPhone(a.client_phone)}`}
+                href={buildWhatsappUrl(a.client_phone, "")}
                 target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-emerald-700 hover:underline"
               >
@@ -428,7 +428,7 @@ function ClientHistoryDialog({
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Ficha de clienta</p>
             <h2 className="mt-1 font-display text-2xl">{name}</h2>
             <a
-              href={`https://wa.me/${cleanPhone(phone)}`}
+              href={buildWhatsappUrl(phone, "")}
               target="_blank" rel="noopener noreferrer"
               className="mt-1 inline-flex items-center gap-1.5 text-sm text-emerald-700 hover:underline"
             >
