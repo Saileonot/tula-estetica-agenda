@@ -1,3 +1,5 @@
+import { Instagram } from "lucide-react";
+
 export function Footer() {
   return (
     <footer id="contacto" className="border-t border-border bg-background">
