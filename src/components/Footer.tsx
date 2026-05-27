@@ -1,5 +1,3 @@
-import { Instagram } from "lucide-react";
-
 export function Footer() {
   return (
     <footer id="contacto" className="border-t border-border bg-background">
@@ -19,10 +17,7 @@ export function Footer() {
         <div className="text-sm">
           <p className="font-medium">Contacto</p>
           <p className="mt-2 text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5">
-              <Instagram className="h-3.5 w-3.5" />
-              @tulaestheticbeauty
-            </span>
+            @tulaestheticbeauty
             <br />
             +34 682 134 196
           </p>
