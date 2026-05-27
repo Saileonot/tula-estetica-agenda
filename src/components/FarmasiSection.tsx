@@ -82,12 +82,22 @@ export function FarmasiSection() {
                 </div>
               </div>
             </a>
-            <div className="mt-8 aspect-square rounded-3xl bg-gradient-to-br from-accent/40 to-secondary p-6 shadow-lg backdrop-blur">
+            <a
+              href="https://www.farmasi.es/tulacira/product-detail/tinted-lip-plumper-fiery-0105-merry-berry?pid=1001501"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group mt-8 aspect-square rounded-3xl bg-gradient-to-br from-accent/40 to-secondary p-6 shadow-lg backdrop-blur transition hover:shadow-xl hover:-translate-y-1"
+            >
               <div className="flex h-full flex-col justify-between">
                 <span className="text-xs uppercase tracking-[0.25em] text-foreground/70">Make up</span>
-                <p className="font-display text-2xl leading-tight">Maquillaje</p>
+                <div>
+                  <p className="font-display text-2xl leading-tight">Tinted Lip Plumper Fiery 0105 Merry Berry</p>
+                  <span className="mt-2 inline-flex items-center gap-1 text-xs text-primary opacity-0 transition group-hover:opacity-100">
+                    Comprar <ExternalLink className="h-3 w-3" />
+                  </span>
+                </div>
               </div>
-            </div>
+            </a>
             <a
               href="https://www.farmasi.es/tulacira/product-detail/gel-de-masaje-balsamo-de-pimenton-y-chile?pid=1000305"
               target="_blank"
