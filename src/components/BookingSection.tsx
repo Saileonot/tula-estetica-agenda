@@ -100,12 +100,22 @@ export function BookingSection({ initialTreatmentId }: Props) {
     return result;
   }, [selectedDay, busy, treatment.duration]);
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedSlot) {
       toast.error("Elige un horario disponible");
       return;
     }
+    const parsed = formSchema.safeParse({ name, phone });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0].message);
+      return;
+    }
+    setConfirmOpen(true);
+  }
+
+  async function handleConfirm() {
+    if (!selectedSlot) return;
     const parsed = formSchema.safeParse({ name, phone });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
@@ -127,16 +137,8 @@ export function BookingSection({ initialTreatmentId }: Props) {
       console.error(error);
       return;
     }
-    toast.success("¡Solicitud enviada! Te abrimos WhatsApp para avisar a Tula.");
-
-    // Abrir WhatsApp a Tula con los datos de la cita pre-rellenados.
-    const fechaTexto = format(selectedSlot, "EEEE d 'de' MMMM 'a las' HH:mm", { locale: es });
-    const mensaje =
-      `Hola ${OWNER.name}, soy ${parsed.data.name}. ` +
-      `Acabo de pedir cita para *${treatment.name}* (${treatment.duration} min · ${treatment.price} €) ` +
-      `el ${fechaTexto}. Mi teléfono: ${parsed.data.phone}. ¡Gracias!`;
-    openWhatsapp(OWNER.whatsappNumber, mensaje);
-
+    toast.success("¡Solicitud enviada! Tula te confirmará por WhatsApp.");
+    setConfirmOpen(false);
     setName(""); setPhone(""); setSelectedSlot(null);
     // refresh busy list
     const from = startOfDay(selectedDay).toISOString();
@@ -144,6 +146,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
     const { data } = await (await getSupabaseClient()).rpc("get_busy_slots", { _from: from, _to: to });
     setBusy((data as Busy[]) ?? []);
   }
+
 
   return (
     <section id="reservar" className="bg-secondary/40 py-24">
