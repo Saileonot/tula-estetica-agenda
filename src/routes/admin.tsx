@@ -6,10 +6,11 @@ import { es } from "date-fns/locale/es";
 import { toast } from "sonner";
 import {
   Loader2, Check, X, LogOut, Phone, ChevronLeft, ChevronRight,
-  Calendar as CalendarIcon, Inbox, MessageCircle, History,
+  Calendar as CalendarIcon, Inbox, MessageCircle, History, CalendarClock,
 } from "lucide-react";
 import { OWNER } from "@/lib/owner";
 import { buildWhatsappUrl, openWhatsapp } from "@/lib/whatsapp";
+import { AvailabilityView } from "@/components/admin/AvailabilityView";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
