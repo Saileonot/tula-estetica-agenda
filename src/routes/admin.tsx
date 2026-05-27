@@ -9,6 +9,7 @@ import {
   Calendar as CalendarIcon, Inbox, MessageCircle, History,
 } from "lucide-react";
 import { OWNER } from "@/lib/owner";
+import { buildWhatsappUrl, openWhatsapp } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
