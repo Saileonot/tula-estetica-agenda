@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { Treatments } from "@/components/Treatments";
 import { BookingSection } from "@/components/BookingSection";
+import { FarmasiSection } from "@/components/FarmasiSection";
 import { Footer } from "@/components/Footer";
 
 export const Route = createFileRoute("/")({
@@ -36,6 +37,7 @@ function Index() {
         <Hero />
         <Treatments onSelect={handleSelect} />
         <BookingSection initialTreatmentId={selected} />
+        <FarmasiSection />
       </main>
       <Footer />
     </div>
