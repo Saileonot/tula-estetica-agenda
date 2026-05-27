@@ -5,9 +5,15 @@ import { es } from "date-fns/locale/es";
 import { toast } from "sonner";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import { TREATMENTS, getTreatment } from "@/lib/treatments";
-import { OWNER } from "@/lib/owner";
-import { openWhatsapp } from "@/lib/whatsapp";
-import { Clock, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Clock, Loader2, CheckCircle2 } from "lucide-react";
 
 const OPEN_HOUR = 10;
 const CLOSE_HOUR = 19;
@@ -34,6 +40,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
   const [busy, setBusy] = useState<Busy[]>([]);
   const [loadingBusy, setLoadingBusy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
@@ -93,12 +100,22 @@ export function BookingSection({ initialTreatmentId }: Props) {
     return result;
   }, [selectedDay, busy, treatment.duration]);
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedSlot) {
       toast.error("Elige un horario disponible");
       return;
     }
+    const parsed = formSchema.safeParse({ name, phone });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0].message);
+      return;
+    }
+    setConfirmOpen(true);
+  }
+
+  async function handleConfirm() {
+    if (!selectedSlot) return;
     const parsed = formSchema.safeParse({ name, phone });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
@@ -120,16 +137,8 @@ export function BookingSection({ initialTreatmentId }: Props) {
       console.error(error);
       return;
     }
-    toast.success("¡Solicitud enviada! Te abrimos WhatsApp para avisar a Tula.");
-
-    // Abrir WhatsApp a Tula con los datos de la cita pre-rellenados.
-    const fechaTexto = format(selectedSlot, "EEEE d 'de' MMMM 'a las' HH:mm", { locale: es });
-    const mensaje =
-      `Hola ${OWNER.name}, soy ${parsed.data.name}. ` +
-      `Acabo de pedir cita para *${treatment.name}* (${treatment.duration} min · ${treatment.price} €) ` +
-      `el ${fechaTexto}. Mi teléfono: ${parsed.data.phone}. ¡Gracias!`;
-    openWhatsapp(OWNER.whatsappNumber, mensaje);
-
+    toast.success("¡Solicitud enviada! Tula te confirmará por WhatsApp.");
+    setConfirmOpen(false);
     setName(""); setPhone(""); setSelectedSlot(null);
     // refresh busy list
     const from = startOfDay(selectedDay).toISOString();
@@ -137,6 +146,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
     const { data } = await (await getSupabaseClient()).rpc("get_busy_slots", { _from: from, _to: to });
     setBusy((data as Busy[]) ?? []);
   }
+
 
   return (
     <section id="reservar" className="bg-secondary/40 py-24">
@@ -292,6 +302,72 @@ export function BookingSection({ initialTreatmentId }: Props) {
           </form>
         </div>
       </div>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl">Confirma tu cita</DialogTitle>
+            <DialogDescription>
+              Revisa los datos antes de enviar tu solicitud.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-2 space-y-3 rounded-2xl bg-secondary/60 p-4 text-sm">
+            <div className="flex justify-between gap-4">
+              <span className="text-muted-foreground">Tratamiento</span>
+              <span className="font-medium text-right">{treatment.name}</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-muted-foreground">Duración</span>
+              <span className="font-medium">{treatment.duration} min</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-muted-foreground">Importe</span>
+              <span className="font-medium">{treatment.price} €</span>
+            </div>
+            {selectedSlot && (
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">Fecha y hora</span>
+                <span className="font-medium text-right capitalize">
+                  {format(selectedSlot, "EEEE d 'de' MMMM, HH:mm", { locale: es })}
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between gap-4 border-t border-border pt-3">
+              <span className="text-muted-foreground">Nombre</span>
+              <span className="font-medium text-right">{name}</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-muted-foreground">Teléfono</span>
+              <span className="font-medium">{phone}</span>
+            </div>
+          </div>
+
+          <p className="mt-2 rounded-xl bg-primary/10 px-4 py-3 text-sm text-foreground">
+            Tula confirmará lo antes posible tu cita vía WhatsApp. ¡Gracias!
+          </p>
+
+          <DialogFooter className="mt-2 gap-2 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => setConfirmOpen(false)}
+              disabled={submitting}
+              className="rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition hover:bg-secondary disabled:opacity-60"
+            >
+              Editar
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={submitting}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              Confirmar cita
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
