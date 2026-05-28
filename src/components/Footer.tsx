@@ -20,6 +20,8 @@ export function Footer() {
             @tulaestheticbeauty
             <br />
             +34 682 134 196
+            <br />
+            Te atiendo en: C/Mirto 2, Las Pajanosas, Sevilla
           </p>
         </div>
       </div>
