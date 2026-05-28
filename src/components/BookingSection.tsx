@@ -175,7 +175,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
       duration_minutes: treatment.duration,
       price_eur: treatment.price,
       slot_at: selectedSlot.toISOString(),
-      status: "pending",
+      status: "confirmed",
     });
     setSubmitting(false);
     if (error) {
@@ -183,7 +183,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
       console.error(error);
       return;
     }
-    toast.success("¡Solicitud enviada! Tula te confirmará por WhatsApp.");
+    toast.success("¡Cita confirmada! Te esperamos.");
     setConfirmOpen(false);
     setName(""); setPhone(""); setSelectedSlot(null);
     // refresh busy list
@@ -213,7 +213,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
             Elige día, hora y tratamiento
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Los huecos en gris ya están ocupados. Tu solicitud se confirmará por teléfono.
+            Los huecos en gris ya están ocupados. Al elegir un hueco libre tu cita queda confirmada.
           </p>
         </div>
 
@@ -412,7 +412,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
           </div>
 
           <p className="mt-2 rounded-xl bg-primary/10 px-4 py-3 text-sm text-foreground">
-            Tula confirmará lo antes posible tu cita vía WhatsApp. ¡Gracias!
+            Al confirmar, tu cita quedará reservada automáticamente. ¡Gracias!
           </p>
 
           <DialogFooter className="mt-2 gap-2 sm:gap-2">
