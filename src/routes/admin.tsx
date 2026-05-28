@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   Loader2, Check, X, LogOut, Phone, ChevronLeft, ChevronRight,
   Calendar as CalendarIcon, Inbox, MessageCircle, History, CalendarClock,
-  CalendarDays, Sparkles, List,
+  CalendarDays, Sparkles, List, Users, Search,
 } from "lucide-react";
 import { OWNER } from "@/lib/owner";
 import { buildWhatsappUrl, openWhatsapp } from "@/lib/whatsapp";
@@ -33,7 +33,7 @@ type Appointment = {
   created_at: string;
 };
 
-type Tab = "day" | "month" | "list" | "requests" | "availability" | "treatments";
+type Tab = "day" | "month" | "list" | "clients" | "requests" | "availability" | "treatments";
 
 function AdminPage() {
   const navigate = useNavigate();
@@ -163,6 +163,9 @@ function AdminPage() {
           <TabBtn active={tab === "list"} onClick={() => setTab("list")} icon={<List className="h-4 w-4" />}>
             Listado
           </TabBtn>
+          <TabBtn active={tab === "clients"} onClick={() => setTab("clients")} icon={<Users className="h-4 w-4" />}>
+            Clientes
+          </TabBtn>
           <TabBtn active={tab === "requests"} onClick={() => setTab("requests")} icon={<Inbox className="h-4 w-4" />}>
             Solicitudes ({pendingRequests.length})
           </TabBtn>
@@ -198,6 +201,12 @@ function AdminPage() {
             onConfirm={(a) => updateStatus(a, "confirmed")}
             onCancel={(a) => updateStatus(a, "cancelled")}
             onOpenHistory={(a) => setHistoryFor({ phone: a.client_phone, name: a.client_name })}
+          />
+        )}
+        {tab === "clients" && (
+          <ClientsView
+            items={appointments}
+            onOpenHistory={(c) => setHistoryFor({ phone: c.phone, name: c.name })}
           />
         )}
         {tab === "requests" && (
@@ -409,6 +418,155 @@ function FilterBtn({ active, onClick, children }: { active: boolean; onClick: ()
     >
       {children}
     </button>
+  );
+}
+
+type ClientSummary = {
+  phone: string;
+  name: string;
+  totalVisits: number;
+  upcoming: number;
+  lastVisit: Date | null;
+  nextVisit: Date | null;
+  totalSpent: number;
+};
+
+function ClientsView({
+  items, onOpenHistory,
+}: {
+  items: Appointment[];
+  onOpenHistory: (c: ClientSummary) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"last" | "name" | "visits" | "spent">("last");
+
+  const clients = useMemo<ClientSummary[]>(() => {
+    const now = new Date();
+    const map = new Map<string, ClientSummary & { _lastCreated: number }>();
+    for (const a of items) {
+      const phone = a.client_phone.trim();
+      if (!phone) continue;
+      const existing = map.get(phone);
+      const slotDate = new Date(a.slot_at);
+      const createdMs = new Date(a.created_at).getTime();
+      const counted = a.status !== "cancelled";
+      const isUpcoming = counted && slotDate >= now;
+      const isPast = counted && slotDate < now;
+
+      if (!existing) {
+        map.set(phone, {
+          phone,
+          name: a.client_name,
+          totalVisits: isPast ? 1 : 0,
+          upcoming: isUpcoming ? 1 : 0,
+          lastVisit: isPast ? slotDate : null,
+          nextVisit: isUpcoming ? slotDate : null,
+          totalSpent: counted ? Number(a.price_eur ?? 0) : 0,
+          _lastCreated: createdMs,
+        });
+      } else {
+        if (isPast) existing.totalVisits += 1;
+        if (isUpcoming) existing.upcoming += 1;
+        if (counted) existing.totalSpent += Number(a.price_eur ?? 0);
+        if (isPast && (!existing.lastVisit || slotDate > existing.lastVisit)) existing.lastVisit = slotDate;
+        if (isUpcoming && (!existing.nextVisit || slotDate < existing.nextVisit)) existing.nextVisit = slotDate;
+        // Quédate con el nombre más reciente (puede haber cambios de escritura)
+        if (createdMs > existing._lastCreated) {
+          existing.name = a.client_name;
+          existing._lastCreated = createdMs;
+        }
+      }
+    }
+    let list = Array.from(map.values());
+    const q = query.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (c) => c.name.toLowerCase().includes(q) || c.phone.toLowerCase().includes(q),
+      );
+    }
+    list.sort((a, b) => {
+      if (sortBy === "name") return a.name.localeCompare(b.name, "es");
+      if (sortBy === "visits") return b.totalVisits - a.totalVisits;
+      if (sortBy === "spent") return b.totalSpent - a.totalSpent;
+      // "last" — más reciente primero (próxima o última)
+      const ax = (a.nextVisit ?? a.lastVisit)?.getTime() ?? 0;
+      const bx = (b.nextVisit ?? b.lastVisit)?.getTime() ?? 0;
+      return bx - ax;
+    });
+    return list;
+  }, [items, query, sortBy]);
+
+  return (
+    <>
+      <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar por nombre o teléfono..."
+            className="w-full rounded-full border border-border bg-background py-2 pl-9 pr-3 text-sm outline-none focus:border-primary"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <FilterBtn active={sortBy === "last"} onClick={() => setSortBy("last")}>Recientes</FilterBtn>
+          <FilterBtn active={sortBy === "name"} onClick={() => setSortBy("name")}>Nombre</FilterBtn>
+          <FilterBtn active={sortBy === "visits"} onClick={() => setSortBy("visits")}>Visitas</FilterBtn>
+          <FilterBtn active={sortBy === "spent"} onClick={() => setSortBy("spent")}>Gasto</FilterBtn>
+        </div>
+        <span className="rounded-full bg-secondary/60 px-3 py-1.5 text-center text-sm text-muted-foreground">
+          {clients.length} {clients.length === 1 ? "clienta" : "clientas"}
+        </span>
+      </div>
+
+      {clients.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-border bg-card p-16 text-center text-muted-foreground">
+          No hay clientas que mostrar.
+        </div>
+      ) : (
+        <ul className="grid gap-2">
+          {clients.map((c) => (
+            <li key={c.phone}>
+              <button
+                onClick={() => onOpenHistory(c)}
+                className="flex w-full flex-col gap-2 rounded-2xl border border-border bg-card p-4 text-left shadow-sm transition hover:border-primary/40 hover:bg-secondary/30 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-display text-lg">{c.name}</p>
+                    {c.upcoming > 0 && (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                        {c.upcoming} próxima{c.upcoming === 1 ? "" : "s"}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-0.5 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Phone className="h-3.5 w-3.5" /> {c.phone}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {c.nextVisit
+                      ? <>Próxima: {format(c.nextVisit, "d MMM yyyy · HH:mm", { locale: es })}</>
+                      : c.lastVisit
+                      ? <>Última: {format(c.lastVisit, "d MMM yyyy", { locale: es })}</>
+                      : "Sin visitas todavía"}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-4 text-sm">
+                  <div className="text-right">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Visitas</p>
+                    <p className="font-display text-lg leading-none">{c.totalVisits}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Gasto</p>
+                    <p className="font-display text-lg leading-none text-primary">{c.totalSpent.toFixed(2)} €</p>
+                  </div>
+                </div>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   );
 }
 
