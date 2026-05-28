@@ -16,7 +16,7 @@ import {
 import { Clock, Loader2, CheckCircle2 } from "lucide-react";
 
 const SLOT_MINUTES = 30;
-const DAYS_AHEAD = 14;
+const DAYS_AHEAD = 60;
 
 type Range = { open: string; close: string };
 type DayHours = { morning: Range | null; afternoon: Range | null; closed: boolean };
@@ -242,7 +242,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
           {/* Day picker */}
           <div className="mt-8">
             <label className="text-sm font-medium">Día</label>
-            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-7">
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth">
               {days.map((d) => {
                 const active = isSameDay(d, selectedDay);
                 return (
@@ -250,7 +250,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
                     key={d.toISOString()}
                     type="button"
                     onClick={() => setSelectedDay(d)}
-                    className={`flex flex-col items-center rounded-2xl border px-2 py-3 text-center transition ${
+                    className={`flex shrink-0 snap-start basis-[calc((100%-1rem)/3)] sm:basis-[calc((100%-2rem)/5)] md:basis-[calc((100%-3rem)/7)] flex-col items-center rounded-2xl border px-2 py-3 text-center transition ${
                       active
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border bg-background hover:border-primary/50"
