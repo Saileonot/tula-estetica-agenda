@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   Loader2, Check, X, LogOut, Phone, ChevronLeft, ChevronRight,
   Calendar as CalendarIcon, Inbox, MessageCircle, History, CalendarClock,
-  CalendarDays, Sparkles, List,
+  CalendarDays, Sparkles, List, Users, Search,
 } from "lucide-react";
 import { OWNER } from "@/lib/owner";
 import { buildWhatsappUrl, openWhatsapp } from "@/lib/whatsapp";
