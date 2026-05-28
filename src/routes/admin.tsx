@@ -203,6 +203,12 @@ function AdminPage() {
             onOpenHistory={(a) => setHistoryFor({ phone: a.client_phone, name: a.client_name })}
           />
         )}
+        {tab === "clients" && (
+          <ClientsView
+            items={appointments}
+            onOpenHistory={(c) => setHistoryFor({ phone: c.phone, name: c.name })}
+          />
+        )}
         {tab === "requests" && (
           <RequestsView
             items={pendingRequests}
