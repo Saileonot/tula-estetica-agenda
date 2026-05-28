@@ -192,6 +192,14 @@ function AdminPage() {
             onPickDay={(d) => { setSelectedDay(startOfDay(d)); setTab("day"); }}
           />
         )}
+        {tab === "list" && (
+          <ListView
+            items={appointments}
+            onConfirm={(a) => updateStatus(a, "confirmed")}
+            onCancel={(a) => updateStatus(a, "cancelled")}
+            onOpenHistory={(a) => setHistoryFor({ phone: a.client_phone, name: a.client_name })}
+          />
+        )}
         {tab === "requests" && (
           <RequestsView
             items={pendingRequests}
