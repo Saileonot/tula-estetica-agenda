@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   Loader2, Check, X, LogOut, Phone, ChevronLeft, ChevronRight,
   Calendar as CalendarIcon, Inbox, MessageCircle, History, CalendarClock,
-  CalendarDays, Sparkles,
+  CalendarDays, Sparkles, List,
 } from "lucide-react";
 import { OWNER } from "@/lib/owner";
 import { buildWhatsappUrl, openWhatsapp } from "@/lib/whatsapp";
@@ -33,7 +33,7 @@ type Appointment = {
   created_at: string;
 };
 
-type Tab = "day" | "month" | "requests" | "availability" | "treatments";
+type Tab = "day" | "month" | "list" | "requests" | "availability" | "treatments";
 
 function AdminPage() {
   const navigate = useNavigate();
@@ -160,6 +160,9 @@ function AdminPage() {
           <TabBtn active={tab === "month"} onClick={() => setTab("month")} icon={<CalendarDays className="h-4 w-4" />}>
             Mes
           </TabBtn>
+          <TabBtn active={tab === "list"} onClick={() => setTab("list")} icon={<List className="h-4 w-4" />}>
+            Listado
+          </TabBtn>
           <TabBtn active={tab === "requests"} onClick={() => setTab("requests")} icon={<Inbox className="h-4 w-4" />}>
             Solicitudes ({pendingRequests.length})
           </TabBtn>
@@ -187,6 +190,14 @@ function AdminPage() {
             onChangeMonth={setSelectedMonth}
             items={appointments}
             onPickDay={(d) => { setSelectedDay(startOfDay(d)); setTab("day"); }}
+          />
+        )}
+        {tab === "list" && (
+          <ListView
+            items={appointments}
+            onConfirm={(a) => updateStatus(a, "confirmed")}
+            onCancel={(a) => updateStatus(a, "cancelled")}
+            onOpenHistory={(a) => setHistoryFor({ phone: a.client_phone, name: a.client_name })}
           />
         )}
         {tab === "requests" && (
@@ -331,6 +342,73 @@ function RequestsView({
         />
       ))}
     </div>
+  );
+}
+
+function ListView({
+  items, onConfirm, onCancel, onOpenHistory,
+}: {
+  items: Appointment[];
+  onConfirm: (a: Appointment) => void;
+  onCancel: (a: Appointment) => void;
+  onOpenHistory: (a: Appointment) => void;
+}) {
+  const [filter, setFilter] = useState<"upcoming" | "past" | "all">("upcoming");
+
+  const filtered = useMemo(() => {
+    const now = new Date();
+    const base = items.filter((a) => a.status !== "cancelled");
+    const list =
+      filter === "past"
+        ? base.filter((a) => new Date(a.slot_at) < now).sort((a, b) => new Date(b.slot_at).getTime() - new Date(a.slot_at).getTime())
+        : filter === "upcoming"
+        ? base.filter((a) => new Date(a.slot_at) >= now).sort((a, b) => new Date(a.slot_at).getTime() - new Date(b.slot_at).getTime())
+        : base.slice().sort((a, b) => new Date(a.slot_at).getTime() - new Date(b.slot_at).getTime());
+    return list;
+  }, [items, filter]);
+
+  return (
+    <>
+      <div className="mb-6 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3">
+        <FilterBtn active={filter === "upcoming"} onClick={() => setFilter("upcoming")}>Por atender</FilterBtn>
+        <FilterBtn active={filter === "past"} onClick={() => setFilter("past")}>Realizadas</FilterBtn>
+        <FilterBtn active={filter === "all"} onClick={() => setFilter("all")}>Todas</FilterBtn>
+        <span className="ml-auto rounded-full bg-secondary/60 px-3 py-1.5 text-sm text-muted-foreground">
+          {filtered.length} {filtered.length === 1 ? "cita" : "citas"}
+        </span>
+      </div>
+      {filtered.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-border bg-card p-16 text-center text-muted-foreground">
+          No hay citas que mostrar.
+        </div>
+      ) : (
+        <div className="grid gap-3">
+          {filtered.map((a) => (
+            <AppointmentCard
+              key={a.id}
+              a={a}
+              showDate
+              onConfirm={() => onConfirm(a)}
+              onCancel={() => onCancel(a)}
+              onOpenHistory={() => onOpenHistory(a)}
+            />
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+function FilterBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-full px-4 py-1.5 text-sm transition ${
+        active ? "bg-primary text-primary-foreground" : "border border-border bg-background text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
