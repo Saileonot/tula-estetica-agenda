@@ -33,7 +33,7 @@ type Appointment = {
   created_at: string;
 };
 
-type Tab = "day" | "month" | "list" | "requests" | "availability" | "treatments";
+type Tab = "day" | "month" | "list" | "clients" | "requests" | "availability" | "treatments";
 
 function AdminPage() {
   const navigate = useNavigate();
