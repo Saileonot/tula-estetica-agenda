@@ -163,6 +163,9 @@ function AdminPage() {
           <TabBtn active={tab === "list"} onClick={() => setTab("list")} icon={<List className="h-4 w-4" />}>
             Listado
           </TabBtn>
+          <TabBtn active={tab === "clients"} onClick={() => setTab("clients")} icon={<Users className="h-4 w-4" />}>
+            Clientes
+          </TabBtn>
           <TabBtn active={tab === "requests"} onClick={() => setTab("requests")} icon={<Inbox className="h-4 w-4" />}>
             Solicitudes ({pendingRequests.length})
           </TabBtn>
