@@ -242,26 +242,36 @@ export function BookingSection({ initialTreatmentId }: Props) {
           {/* Day picker */}
           <div className="mt-8">
             <label className="text-sm font-medium">Día</label>
-            <div className="mt-3 flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth">
-              {days.map((d) => {
-                const active = isSameDay(d, selectedDay);
+            <div className="mt-3 flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth">
+              {Array.from({ length: Math.ceil(days.length / 14) }, (_, pageIdx) => {
+                const pageDays = days.slice(pageIdx * 14, pageIdx * 14 + 14);
                 return (
-                  <button
-                    key={d.toISOString()}
-                    type="button"
-                    onClick={() => setSelectedDay(d)}
-                    className={`flex shrink-0 snap-start basis-[calc((100%-2rem)/5)] sm:basis-[calc((100%-3rem)/7)] md:basis-[calc((100%-6*0.5rem)/7)] lg:basis-[calc((100%-14*0.5rem)/15)] flex-col items-center rounded-2xl border px-2 py-3 text-center transition ${
-                      active
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-background hover:border-primary/50"
-                    }`}
+                  <div
+                    key={pageIdx}
+                    className="grid w-full shrink-0 basis-full snap-start grid-cols-7 grid-rows-2 gap-2"
                   >
-                    <span className="text-[10px] uppercase tracking-wider opacity-80">
-                      {format(d, "EEE", { locale: es })}
-                    </span>
-                    <span className="mt-1 font-display text-lg leading-none">{format(d, "d")}</span>
-                    <span className="mt-0.5 text-[10px] opacity-80">{format(d, "MMM", { locale: es })}</span>
-                  </button>
+                    {pageDays.map((d) => {
+                      const active = isSameDay(d, selectedDay);
+                      return (
+                        <button
+                          key={d.toISOString()}
+                          type="button"
+                          onClick={() => setSelectedDay(d)}
+                          className={`flex flex-col items-center rounded-2xl border px-2 py-3 text-center transition ${
+                            active
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border bg-background hover:border-primary/50"
+                          }`}
+                        >
+                          <span className="text-[10px] uppercase tracking-wider opacity-80">
+                            {format(d, "EEE", { locale: es })}
+                          </span>
+                          <span className="mt-1 font-display text-lg leading-none">{format(d, "d")}</span>
+                          <span className="mt-0.5 text-[10px] opacity-80">{format(d, "MMM", { locale: es })}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 );
               })}
             </div>
