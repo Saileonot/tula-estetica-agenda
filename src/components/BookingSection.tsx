@@ -250,7 +250,7 @@ export function BookingSection({ initialTreatmentId }: Props) {
                     key={d.toISOString()}
                     type="button"
                     onClick={() => setSelectedDay(d)}
-                    className={`flex shrink-0 snap-start basis-[calc((100%-1rem)/3)] sm:basis-[calc((100%-2rem)/5)] md:basis-[calc((100%-3rem)/7)] flex-col items-center rounded-2xl border px-2 py-3 text-center transition ${
+                    className={`flex shrink-0 snap-start basis-[calc((100%-2rem)/5)] sm:basis-[calc((100%-3rem)/7)] md:basis-[calc((100%-6*0.5rem)/7)] lg:basis-[calc((100%-14*0.5rem)/15)] flex-col items-center rounded-2xl border px-2 py-3 text-center transition ${
                       active
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border bg-background hover:border-primary/50"
