@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "tula-estetica-mcp",
+      "version": "0.1.0",
+      "title": "Tula Estética MCP"
+    },
+    "tools": [
+      {
+        "name": "list_treatments",
+        "title": "List treatments",
+        "description": "List the active beauty treatments offered by Tula Estética with their duration and price.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_appointments_on_date",
+        "title": "List appointments on date",
+        "description": "List booked appointments on a given date (YYYY-MM-DD) to see which time slots are already taken.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string",
+              "description": "Date in ISO YYYY-MM-DD format, e.g. 2026-07-10"
+            }
+          },
+          "required": [
+            "date"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_appointment",
+        "title": "Create appointment",
+        "description": "Book a confirmed appointment at Tula Estética. Provide the treatment id (from list_treatments), the ISO datetime of the slot, and the client's name and mobile phone.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "treatment_id": {
+              "type": "string",
+              "description": "Treatment id (slug) from list_treatments"
+            },
+            "slot_at": {
+              "type": "string",
+              "description": "ISO 8601 datetime of the appointment start"
+            },
+            "client_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "client_phone": {
+              "type": "string",
+              "minLength": 6,
+              "description": "Mobile phone number of the client"
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "treatment_id",
+            "slot_at",
+            "client_name",
+            "client_phone"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
